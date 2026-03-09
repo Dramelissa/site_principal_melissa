@@ -1,0 +1,2 @@
+Coloque aqui as fotos de procedimentos, da clínica e da Dra. Melissa.
+Exemplo de uso no código: /images/photos/nome-da-foto.jpg
