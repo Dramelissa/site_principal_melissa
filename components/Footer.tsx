@@ -29,7 +29,6 @@ const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
               <ul className="space-y-4 text-sm font-medium">
                 <li><a href="#" className="hover:text-[#C9A84C] transition-colors">Sobre</a></li>
                 <li><a href="#procedimentos" className="hover:text-[#C9A84C] transition-colors">Procedimentos</a></li>
-                <li><a href="#" className="hover:text-[#C9A84C] transition-colors">Blog</a></li>
                 <li><a href="#" className="hover:text-[#C9A84C] transition-colors">Contato</a></li>
               </ul>
             </div>
@@ -43,7 +42,6 @@ const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
                 <li><a href="#" className="hover:text-[#C9A84C] transition-colors">Instagram</a></li>
                 <li><a href="#" className="hover:text-[#C9A84C] transition-colors">WhatsApp</a></li>
                 <li><a href="#" className="hover:text-[#C9A84C] transition-colors">Facebook</a></li>
-                <li><a href="#" className="hover:text-[#C9A84C] transition-colors">YouTube</a></li>
               </ul>
             </div>
           </FadeIn>
