@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-          <a href="#" className="hover:opacity-60 transition-opacity">Sobre</a>
+          <a href="#trajetoria" className="hover:opacity-60 transition-opacity">Sobre</a>
           <a href="#procedimentos" className="hover:opacity-60 transition-opacity">Procedimentos</a>
 
           <a href="#" className="hover:opacity-60 transition-opacity">Contato</a>
@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div className="absolute top-20 left-0 w-full bg-white rounded-3xl p-6 shadow-xl md:hidden flex flex-col gap-4 text-center">
-          <a href="#" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium py-2 border-b border-gray-100">Sobre</a>
+          <a href="#trajetoria" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium py-2 border-b border-gray-100">Sobre</a>
           <a href="#procedimentos" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium py-2 border-b border-gray-100">Procedimentos</a>
 
           <a href="#" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium py-2 border-b border-gray-100">Contato</a>
