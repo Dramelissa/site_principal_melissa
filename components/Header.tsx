@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
       <div className="bg-white/90 backdrop-blur-md rounded-full px-4 md:px-6 py-3 flex items-center justify-between shadow-sm border border-white/20">
         {/* Logo */}
         {/* Logo */}
-        <a href="#" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <a href="#inicio" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img src="/images/icons/27.1.webp" alt="Logo Dra. Melissa" className="w-10 h-10 object-contain" />
           <div className="flex flex-col items-start gap-0.5">
             <div className="font-[Raleway] font-medium text-sm md:text-base tracking-[0.15em] text-[#111111] uppercase leading-none whitespace-nowrap">
