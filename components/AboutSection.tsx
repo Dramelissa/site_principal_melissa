@@ -41,7 +41,7 @@ const AboutSection: React.FC = () => {
 
             <FadeIn direction="right" delay={300}>
               <p className="text-[#6B6B6B] text-base md:text-lg leading-relaxed mb-10 max-w-lg">
-                Especialista em dermatologia avançada com foco em rejuvenescimento natural, a Dra. Melissa Tamayo une o rigor científico à sensibilidade estética. Sua abordagem é pautada pelo <em className="italic text-[#2C2C2C]">Quiet Luxury</em>, onde o resultado é tão invisível quanto impactante.
+                Médica referência em <em className="not-italic font-semibold text-[#2C2C2C]">Blefaroplastia e Rejuvenescimento do Olhar de Alto Padrão</em> em Manaus (AM) e São Paulo (SP). Com técnicas avançadas e atendimento profundamente individualizado, a Dra. Melissa Tamayo proporciona resultados transformadores para casos de pálpebras caídas, olhar cansado, flacidez palpebral e envelhecimento da região periorbital — sempre preservando a naturalidade e a harmonia da expressão de cada paciente.
               </p>
             </FadeIn>
 
