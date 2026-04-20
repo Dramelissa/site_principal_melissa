@@ -64,23 +64,6 @@ const ServicesHero: React.FC<ServicesHeroProps> = ({ onOpenContact }) => {
               Procedimentos <br /> Especializados
             </h2>
           </FadeIn>
-
-          <FadeIn delay={200}>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <button
-                onClick={onOpenContact}
-                className="bg-[#C9A84C] text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-[#A07832] transition-colors"
-              >
-                Agende sua Consulta
-              </button>
-              <a
-                href="#procedimentos"
-                className="bg-transparent border border-[#2C2C2C]/20 text-[#2C2C2C] px-6 py-2 rounded-full text-sm font-medium hover:bg-[#2C2C2C]/5 transition-colors"
-              >
-                Ver todos os procedimentos
-              </a>
-            </div>
-          </FadeIn>
         </div>
 
         {/* Grid de procedimentos */}
