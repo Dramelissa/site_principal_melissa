@@ -10,7 +10,7 @@ const AboutSection: React.FC = () => {
         {/* Cabeçalho centralizado acima de tudo */}
         <div className="text-center mb-14">
           <FadeIn direction="none">
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#6B6B6B] block mb-4">
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#2C2C2C] block mb-4">
               Referência em rejuvenescimento do olhar e facial de alto padrão
             </span>
           </FadeIn>
@@ -24,10 +24,9 @@ const AboutSection: React.FC = () => {
             <div className="relative">
               <div className="relative overflow-hidden rounded-sm shadow-xl">
                 <img loading="lazy" decoding="async"
-                  src="https://i.ibb.co/zWWWrw9Z/melissa-sobre.webp"
+                  src="https://i.ibb.co/zYLpCrT/dd18569d-442c-4bcc-b7da-79bb07edfa4d.png"
                   alt="Dra. Melissa Tamayo"
-                  className="w-full h-[500px] md:h-[600px] object-cover object-center"
-                  style={{ filter: 'grayscale(100%) contrast(1.08) brightness(0.9)' }}
+                  className="w-full h-[500px] md:h-[600px] object-contain object-center bg-[#F5F0EA]"
                 />
               </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 border-r-2 border-b-2 border-[#C9A84C]/30 hidden md:block" />
