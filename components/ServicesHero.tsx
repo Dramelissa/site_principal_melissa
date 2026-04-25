@@ -21,7 +21,7 @@ const procedures = [
     image: 'https://i.ibb.co/pjh7g007/Blefaroplastia.webp',
   },
   {
-    title: 'Lifting Temporal / Fox Eyes',
+    title: 'Lifting Temporal Definitivo / Fox Eyes',
     subtitle: 'Elevação elegante da cauda da sobrancelha',
     href: '#procedimentos/lifting-temporal',
     image: 'https://i.ibb.co/qq1cNNt/Lifting-Temporal-Fox-Eyes.webp',
