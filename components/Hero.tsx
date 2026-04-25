@@ -14,7 +14,7 @@ const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
       {/* Background Image - Optimized for LCP */}
       <div className="absolute inset-0">
         <img decoding="async"
-          src="/images/recepção-melissa.webp"
+          src="https://i.ibb.co/ynmCTRj0/recep-o-melissa.webp"
           alt="Dra. Melissa Tamayo - Dermatologista"
           className="w-full h-full object-cover object-bottom"
           loading="eager"
