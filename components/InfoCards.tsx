@@ -39,7 +39,7 @@ const InfoCards: React.FC = () => {
     },
     {
       label: "Inovação",
-      title: "Lifting Temporal & Fox Eyes",
+      title: "Lifting Temporal Definitivo & Fox Eyes",
       image: "https://i.ibb.co/qq1cNNt/Lifting-Temporal-Fox-Eyes.webp",
       href: "#procedimentos/lifting-temporal"
     }
