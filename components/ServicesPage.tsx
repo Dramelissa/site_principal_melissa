@@ -21,10 +21,10 @@ const services = [
     },
     {
         id: 'lifting-temporal',
-        title: 'Lifting Temporal / Fox Eyes',
+        title: 'Lifting Temporal Definitivo / Fox Eyes',
         subtitle: 'Elevação da cauda da sobrancelha',
         description: 'O Lifting Temporal, também conhecido como Fox Eyes, é uma técnica sofisticada que eleva a cauda da sobrancelha, criando um olhar mais aberto, elegante e expressivo. Ideal para quem busca um efeito natural de "olho de raposa", com sutileza e sofisticação.',
-        highlights: ['Efeito lifting cirúrgico ', 'Olhar mais aberto e expressivo', 'Resultados elegantes'],
+        highlights: ['Efeito lifting cirúrgico ', 'Resultados elegantes'],
         image: 'https://i.ibb.co/qq1cNNt/Lifting-Temporal-Fox-Eyes.webp',
     },
     {
