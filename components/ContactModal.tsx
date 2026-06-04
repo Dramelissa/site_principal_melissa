@@ -14,11 +14,14 @@ const procedures = [
     'Transplante Capilar',
     'Botox',
     'Ultraformer',
+    'Laser Co2',
+    'Outro Procedimento',
 ];
 
 const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [procedure, setProcedure] = useState('');
     const [message, setMessage] = useState('');
 
@@ -50,6 +53,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
             `📋 Novo contato via site
 > Nome: ${name}
 > E-mail: ${email}
+> Telefone: ${phone}
 > Procedimento: ${procedure}
 > Mensagem: ${message || '—'}
 > Quando: ${dateStr} - ${timeStr}`;
@@ -62,6 +66,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         // Reset form
         setName('');
         setEmail('');
+        setPhone('');
         setProcedure('');
         setMessage('');
         onClose();
@@ -139,6 +144,21 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                         />
                     </div>
 
+                    {/* Telefone */}
+                    <div>
+                        <label className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6B6B] mb-2">
+                            Telefone / WhatsApp *
+                        </label>
+                        <input
+                            type="tel"
+                            required
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="(DD) 99999-9999"
+                            className="w-full bg-white border border-[#E0CC89]/30 rounded-lg px-4 py-3 text-sm text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-colors"
+                        />
+                    </div>
+
                     {/* Procedimento */}
                     <div>
                         <label className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6B6B] mb-2">
@@ -155,7 +175,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                 backgroundPosition: 'right 12px center',
                             }}
                         >
-                            <option value="" disabled>Selecione o procedimento</option>
+                            <option value="" disabled hidden>Selecione o procedimento</option>
                             {procedures.map((proc) => (
                                 <option key={proc} value={proc}>{proc}</option>
                             ))}
