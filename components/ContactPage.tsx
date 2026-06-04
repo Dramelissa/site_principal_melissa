@@ -9,11 +9,14 @@ const procedures = [
   'Transplante Capilar',
   'Botox',
   'Ultraformer',
+  'Laser Co2',
+  'Outro Procedimento',
 ];
 
 const ContactPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [procedure, setProcedure] = useState('');
   const [message, setMessage] = useState('');
 
@@ -35,6 +38,7 @@ const ContactPage: React.FC = () => {
 `📋 Novo contato via site
 > Nome: ${name}
 > E-mail: ${email}
+> Telefone: ${phone}
 > Procedimento: ${procedure}
 > Mensagem: ${message || '—'}
 > Quando: ${dateStr} - ${timeStr}`;
@@ -46,6 +50,7 @@ const ContactPage: React.FC = () => {
 
     setName('');
     setEmail('');
+    setPhone('');
     setProcedure('');
     setMessage('');
   };
@@ -167,6 +172,21 @@ const ContactPage: React.FC = () => {
                   />
                 </div>
 
+                {/* Telefone */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-[#6B6B6B] mb-2">
+                    Telefone / WhatsApp *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="(DD) 99999-9999"
+                    className="w-full bg-[#FAF7F4] border border-transparent rounded-xl px-5 py-3.5 text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:bg-white transition-all"
+                  />
+                </div>
+
                 {/* Procedimento */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-widest text-[#6B6B6B] mb-2">
@@ -183,7 +203,7 @@ const ContactPage: React.FC = () => {
                       backgroundPosition: 'right 20px center',
                     }}
                   >
-                    <option value="" disabled>Selecione uma opção</option>
+                    <option value="" disabled hidden>Selecione uma opção</option>
                     {procedures.map((proc) => (
                       <option key={proc} value={proc}>{proc}</option>
                     ))}
