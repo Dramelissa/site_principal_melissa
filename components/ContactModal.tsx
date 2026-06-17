@@ -61,6 +61,13 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         const encodedMessage = encodeURIComponent(whatsappMessage);
         const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
+        // Dispara evento de lead no Meta Pixel
+        if (typeof (window as any).fbq === 'function') {
+            (window as any).fbq('track', 'Lead', {
+                content_name: procedure,
+            });
+        }
+
         window.open(whatsappUrl, '_blank');
 
         // Reset form
@@ -75,7 +82,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:px-4">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -84,13 +91,19 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
 
             {/* Modal */}
             <div
-                className="relative bg-[#FAF7F4] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+                className="relative bg-[#FAF7F4] rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg flex flex-col"
                 style={{
+                    maxHeight: '92dvh',
                     animation: 'modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
             >
+                {/* Handle bar - mobile only */}
+                <div className="sm:hidden flex justify-center pt-3 pb-1">
+                    <div className="w-10 h-1 rounded-full bg-[#2C2C2C]/20" />
+                </div>
+
                 {/* Header */}
-                <div className="px-8 pt-8 pb-4">
+                <div className="px-5 sm:px-8 pt-4 sm:pt-8 pb-3 sm:pb-4 shrink-0">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">
                             Agendamento
@@ -104,7 +117,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                             </svg>
                         </button>
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-[#2C2C2C]">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-[#2C2C2C]">
                         Agende sua Consulta
                     </h2>
                     <p className="text-sm text-[#6B6B6B] mt-2">
@@ -113,7 +126,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="px-8 pb-8 pt-4 space-y-5">
+                <form onSubmit={handleSubmit} className="px-5 sm:px-8 pb-6 sm:pb-8 pt-2 sm:pt-4 space-y-4 overflow-y-auto">
                     {/* Nome */}
                     <div>
                         <label className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6B6B] mb-2">
