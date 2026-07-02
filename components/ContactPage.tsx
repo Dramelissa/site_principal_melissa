@@ -46,7 +46,7 @@ const ContactPage: React.FC = () => {
     const encodedMessage = encodeURIComponent(whatsappMessage);
     const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
-    window.open(whatsappUrl, '_blank');
+    window.location.href = whatsappUrl;
 
     setName('');
     setEmail('');
