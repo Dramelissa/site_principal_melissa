@@ -31,10 +31,8 @@ const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
             <p className="text-[#E0CC89] text-sm md:text-base uppercase tracking-[0.16em] font-medium mb-4 md:mb-6"></p>
           </FadeIn>
           <FadeIn delay={400}>
-            <h1 className="text-white text-[26px] sm:text-4xl lg:text-5xl font-medium tracking-tight leading-[1.2] mb-8 md:mb-10 drop-shadow-md">
-              Transformamos vidas com o <br />
-              poder do rejuvenescimento <br />
-              facial e do olhar.
+            <h1 className="text-white text-[26px] sm:text-4xl lg:text-5xl font-medium tracking-tight leading-[1.2] mb-8 md:mb-10 drop-shadow-md max-w-2xl">
+              Transformamos vidas com o poder do rejuvenescimento facial e do olhar.
             </h1>
           </FadeIn>
 
