@@ -5,7 +5,6 @@ import Hero from './components/Hero';
 import InfoCards from './components/InfoCards';
 import AboutSection from './components/AboutSection';
 import ServicesHero from './components/ServicesHero';
-import PatientJourney from './components/PatientJourney';
 import Footer from './components/Footer';
 
 import { getUtmParamsFromUrl, storeUtmParams } from './lib/utm';
@@ -82,8 +81,7 @@ const App: React.FC = () => {
             <section className="relative z-10 -mt-20 px-4 md:px-8 max-w-7xl mx-auto">
               <InfoCards />
             </section>
-            <AboutSection />
-            <PatientJourney onOpenContact={openModal} />
+            <AboutSection onOpenContact={openModal} />
             <ServicesHero onOpenContact={openModal} />
           </>
         ) : currentPage === 'procedimentos' ? (
