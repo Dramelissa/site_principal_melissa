@@ -328,6 +328,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                     <option key={proc} value={proc}>{proc}</option>
                                 ))}
                             </select>
+                        </div>
                     </div>
 
                     {/* Submit — fora do scroll, sempre visível */}
