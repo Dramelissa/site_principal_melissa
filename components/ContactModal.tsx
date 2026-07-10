@@ -32,7 +32,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
             // Flag global: garante disparo único mesmo com StrictMode (remount) ou Modal+Page abertas juntas
             if (!(window as any)._leadFormTracked && typeof (window as any).fbq === 'function') {
                 (window as any)._leadFormTracked = true;
-                (window as any).fbq('trackSingleCustom', '1720538598615249', 'lead_form');
+                (window as any).fbq('trackCustom', 'lead_form');
             }
         } else {
             document.body.style.overflow = '';
@@ -84,20 +84,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         const encodedMessage = encodeURIComponent(whatsappMessage);
         const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
-        // Gera o eventId único — compartilhado entre pixel (browser) e CAPI para deduplicação
-        const sharedEventTime = Math.floor(Date.now() / 1000);
-        const sharedEventId = `lead_${sharedEventTime}_${Math.random().toString(36).slice(2, 9)}`;
-
-        // Dispara eventos do Meta Pixel ANTES de qualquer operação assíncrona
+        // Dispara evento Lead no Meta Pixel ao enviar o formulário
         if (typeof (window as any).fbq === 'function') {
-            (window as any).fbq('trackSingle', '1720538598615249', 'CompleteRegistration',
-                { content_name: procedure },
-                { eventID: `${sharedEventId}_cr` }
-            );
-            (window as any).fbq('trackSingle', '1720538598615249', 'Lead',
-                { content_name: procedure },
-                { eventID: sharedEventId }
-            );
+            (window as any).fbq('track', 'Lead', { content_name: procedure });
         }
 
         // ── Envio para o Webhook em background (evita bloqueio de pop-up no Safari) ──
@@ -134,9 +123,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                 const utmTerm = getUrlParam('utm_term');
                 const utmId = getUrlParam('utm_id');
 
-                // Identificadores de evento — reutiliza o mesmo eventId do pixel para deduplicação
-                const eventTime = sharedEventTime;
-                const eventId = sharedEventId;
+                // Identificadores de evento
+                const eventTime = Math.floor(Date.now() / 1000);
+                const eventId = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
                 const externalId = await sha256(`${email}_${normalizedPhone}`);
 
                 // IP do cliente via serviço externo (best-effort)
