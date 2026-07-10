@@ -13,6 +13,24 @@ const procedures = [
   'Outro Procedimento',
 ];
 
+// Utilitários para cookies e UTMs
+  const getCookie = (name: string): string => {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : '';
+  };
+
+  const getUrlParam = (param: string): string => {
+    return new URLSearchParams(window.location.search).get(param) || '';
+  };
+
+  // Hash SHA-256 para dados do usuário (requisito CAPI do Facebook)
+  const sha256 = async (str: string): Promise<string> => {
+    if (!str) return '';
+    const normalized = str.trim().toLowerCase();
+    const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized));
+    return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
 const ContactPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -46,7 +64,122 @@ const ContactPage: React.FC = () => {
     const encodedMessage = encodeURIComponent(whatsappMessage);
     const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
-    window.location.href = whatsappUrl;
+    // Dispara evento de lead no Meta Pixel (browser-side)
+    if (typeof (window as any).fbq === 'function') {
+      (window as any).fbq('track', 'Lead', {
+        content_name: procedure,
+      });
+    }
+
+    // Envio para o Webhook / CAPI em background
+    const sendTrackingData = async () => {
+      try {
+        const nameParts = name.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const rawPhone = phone.replace(/\D/g, '');
+        const normalizedPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
+
+        const [hashedEmail, hashedPhone, hashedFn, hashedLn] = await Promise.all([
+          sha256(email),
+          sha256(normalizedPhone),
+          sha256(firstName),
+          sha256(lastName),
+        ]);
+
+        const fbp = getCookie('_fbp');
+        const fbc = getCookie('_fbc') || getUrlParam('fbclid')
+          ? `fb.1.${Date.now()}.${getUrlParam('fbclid')}`
+          : '';
+
+        const utmSource   = getUrlParam('utm_source');
+        const utmMedium   = getUrlParam('utm_medium');
+        const utmCampaign = getUrlParam('utm_campaign');
+        const utmContent  = getUrlParam('utm_content');
+        const utmTerm     = getUrlParam('utm_term');
+        const utmId       = getUrlParam('utm_id');
+
+        const eventTime = Math.floor(Date.now() / 1000);
+        const eventId   = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
+        const externalId = await sha256(`${email}_${normalizedPhone}`);
+
+        let clientIp = '';
+        try {
+          const ipRes  = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+          const ipData = await ipRes.json();
+          clientIp = ipData.ip || '';
+        } catch { /* silencia timeout */ }
+
+        const payload = {
+          data: [
+            {
+              event_name: 'Lead',
+              event_time: eventTime,
+              event_id: eventId,
+              action_source: 'website',
+              event_source_url: window.location.href,
+              user_data: {
+                em: hashedEmail,
+                ph: hashedPhone,
+                fn: hashedFn,
+                ln: hashedLn,
+                country: await sha256('br'),
+                external_id: externalId,
+                client_ip_address: clientIp,
+                client_user_agent: navigator.userAgent,
+                fbc: fbc,
+                fbp: fbp,
+                raw_em: email.trim().toLowerCase(),
+                raw_ph: normalizedPhone,
+                raw_fn: firstName.trim().toLowerCase(),
+                raw_ln: lastName.trim().toLowerCase(),
+                raw_country: 'br',
+              },
+              custom_data: {
+                procedure,
+                utm_source:   utmSource,
+                utm_medium:   utmMedium,
+                utm_campaign: utmCampaign,
+                utm_content:  utmContent,
+                utm_term:     utmTerm,
+                utm_id:       utmId,
+              },
+              raw_lead: {
+                full_name:        name.trim(),
+                first_name:       firstName,
+                last_name:        lastName,
+                email:            email.trim(),
+                phone:            phone.trim(),
+                phone_normalized: normalizedPhone,
+                procedure,
+                message:          message.trim() || '',
+                ip:               clientIp,
+                user_agent:       navigator.userAgent,
+                page_url:         window.location.href,
+                referrer:         document.referrer || '',
+                submitted_at:     new Date().toISOString(),
+              },
+            },
+          ],
+        };
+
+        fetch('https://webhook.kvgroupbr.com.br/webhook/site_melissa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => { /* silencia erros de rede */ });
+
+      } catch (err) {
+        console.warn('[Webhook] Falha ao enviar dados do lead (ContactPage):', err);
+      }
+    };
+
+    sendTrackingData();
+
+    // Abre o WhatsApp em nova aba para não matar os requests pendentes
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
     setName('');
     setEmail('');
