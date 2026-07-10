@@ -29,6 +29,10 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
+            // Dispara evento customizado quando o formulário é aberto
+            if (typeof (window as any).fbq === 'function') {
+                (window as any).fbq('trackCustom', 'lead_form');
+            }
         } else {
             document.body.style.overflow = '';
         }
@@ -53,7 +57,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const now = new Date();
@@ -79,12 +83,6 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         const encodedMessage = encodeURIComponent(whatsappMessage);
         const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
-        // Dispara evento de lead no Meta Pixel
-        if (typeof (window as any).fbq === 'function') {
-            (window as any).fbq('track', 'Lead', {
-                content_name: procedure,
-            });
-        }
 
         // ── Envio para o Webhook em background (evita bloqueio de pop-up no Safari) ──
         const sendTrackingData = async () => {
@@ -199,9 +197,17 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         };
 
         sendTrackingData();
-        // ─────────────────────────────────────────────────────────────────────
 
-        // Chamada síncrona evita bloqueio de popup
+        // Dispara os eventos do Meta Pixel em sequência
+        if (typeof (window as any).fbq === 'function') {
+            (window as any).fbq('track', 'CompleteRegistration', { content_name: procedure });
+            (window as any).fbq('track', 'Lead', { content_name: procedure });
+        }
+
+        // Aguarda 400 ms para garantir que o pixel enviou os requests
+        // antes de o navegador possivelmente suspender a aba atual
+        await new Promise(r => setTimeout(r, 400));
+
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
         // Reset form
