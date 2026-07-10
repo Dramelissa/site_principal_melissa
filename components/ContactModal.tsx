@@ -67,15 +67,6 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         const whatsappMessage = `📋 Novo contato via site\n> Nome: ${name}\n> E-mail: ${email}\n> Telefone: ${phone}\n> Procedimento: ${procedure}\n> Quando: ${dateStr} - ${timeStr}`;
         const whatsappUrl = `https://wa.me/5592984685391?text=${encodeURIComponent(whatsappMessage)}`;
 
-        // 1. Dispara Lead no Pixel IMEDIATAMENTE (síncrono, sem await)
-        if (typeof (window as any).fbq === 'function') {
-            (window as any).fbq('track', 'Lead', { content_name: procedure });
-        }
-
-        // 2. Abre WhatsApp IMEDIATAMENTE
-        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-
-        // 3. Webhook em background — não bloqueia nada acima
         const rawPhone = phone.replace(/\D/g, '');
         const normalizedPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
         const nameParts = name.trim().split(' ');
@@ -91,59 +82,86 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         const referrer  = document.referrer || '';
         const submittedAt = now.toISOString();
 
+        // 1. Dispara evento customizado no Pixel IMEDIATAMENTE (síncrono, sem await)
+        if (typeof (window as any).fbq === 'function') {
+            (window as any).fbq('trackCustom', 'LeadFormEnvio', { content_name: procedure }, { eventID: eventId });
+        }
+
+        // 2. Abre WhatsApp IMEDIATAMENTE (tem que ser síncrono aqui, senão o
+        //    navegador pode bloquear o popup por sair do gesto do clique)
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
+        // 3. Webhook em background.
+        //    IMPORTANTE: antes tinha um fetch pro ipify.org (até 3s) ANTES de
+        //    mandar pro webhook. No mobile, abrir o WhatsApp costuma tirar o
+        //    foco/descarregar a aba, e nesses 3s de espera o fetch pro webhook
+        //    muitas vezes nunca chegava a ser disparado — por isso o Lead
+        //    sumia. Removido: o n8n já pega o IP real direto do header da
+        //    requisição (x-real-ip), não precisa vir do navegador. Isso deixa
+        //    o caminho crítico bem mais curto (só o hash, ~ms).
         (async () => {
-            const sha256 = async (str: string) => {
+            const sha256Local = async (str: string) => {
                 if (!str) return '';
                 const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str.trim().toLowerCase()));
                 return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
             };
             const [hashedEmail, hashedPhone, hashedFn, hashedLn, hashedCountry, externalId] = await Promise.all([
-                sha256(email), sha256(normalizedPhone), sha256(firstName), sha256(lastName),
-                sha256('br'), sha256(`${email}_${normalizedPhone}`),
+                sha256Local(email), sha256Local(normalizedPhone), sha256Local(firstName), sha256Local(lastName),
+                sha256Local('br'), sha256Local(`${email}_${normalizedPhone}`),
             ]);
-            let clientIp = '';
-            try {
-                const r = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
-                clientIp = (await r.json()).ip || '';
-            } catch { /* ignora */ }
 
-            fetch('https://webhook.kvgroupbr.com.br/webhook/site_melissa', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                keepalive: true,
-                body: JSON.stringify({
-                    data: [{
-                        event_name: 'Lead',
-                        event_time: eventTime,
-                        event_id: eventId,
-                        action_source: 'website',
-                        event_source_url: pageUrl,
-                        user_data: {
-                            em: hashedEmail, ph: hashedPhone, fn: hashedFn, ln: hashedLn,
-                            country: hashedCountry, external_id: externalId,
-                            client_ip_address: clientIp, client_user_agent: userAgent,
-                            fbc, fbp,
-                            raw_em: email.trim().toLowerCase(), raw_ph: normalizedPhone,
-                            raw_fn: firstName.toLowerCase(), raw_ln: lastName.toLowerCase(), raw_country: 'br',
-                        },
-                        custom_data: {
-                            procedure,
-                            utm_source: params.get('utm_source') || '',
-                            utm_medium: params.get('utm_medium') || '',
-                            utm_campaign: params.get('utm_campaign') || '',
-                            utm_content: params.get('utm_content') || '',
-                            utm_term: params.get('utm_term') || '',
-                            utm_id: params.get('utm_id') || '',
-                        },
-                        raw_lead: {
-                            full_name: name.trim(), first_name: firstName, last_name: lastName,
-                            email: email.trim(), phone: phone.trim(), phone_normalized: normalizedPhone,
-                            procedure, ip: clientIp, user_agent: userAgent,
-                            page_url: pageUrl, referrer, submitted_at: submittedAt,
-                        },
-                    }],
-                }),
-            }).catch(() => {});
+            const payload = JSON.stringify({
+                data: [{
+                    event_name: 'LeadFormEnvio',
+                    event_time: eventTime,
+                    event_id: eventId,
+                    action_source: 'website',
+                    event_source_url: pageUrl,
+                    user_data: {
+                        em: hashedEmail, ph: hashedPhone, fn: hashedFn, ln: hashedLn,
+                        country: hashedCountry, external_id: externalId,
+                        client_ip_address: '', client_user_agent: userAgent,
+                        fbc, fbp,
+                        raw_em: email.trim().toLowerCase(), raw_ph: normalizedPhone,
+                        raw_fn: firstName.toLowerCase(), raw_ln: lastName.toLowerCase(), raw_country: 'br',
+                    },
+                    custom_data: {
+                        procedure,
+                        utm_source: params.get('utm_source') || '',
+                        utm_medium: params.get('utm_medium') || '',
+                        utm_campaign: params.get('utm_campaign') || '',
+                        utm_content: params.get('utm_content') || '',
+                        utm_term: params.get('utm_term') || '',
+                        utm_id: params.get('utm_id') || '',
+                    },
+                    raw_lead: {
+                        full_name: name.trim(), first_name: firstName, last_name: lastName,
+                        email: email.trim(), phone: phone.trim(), phone_normalized: normalizedPhone,
+                        procedure, ip: '', user_agent: userAgent,
+                        page_url: pageUrl, referrer, submitted_at: submittedAt,
+                    },
+                }],
+            });
+
+            const webhookUrl = 'https://webhook.kvgroupbr.com.br/webhook/site_melissa';
+
+            // sendBeacon é feito exatamente pra isso: sobrevive à navegação/
+            // fechamento da aba, diferente do fetch normal. Usa ele primeiro;
+            // se não tiver suporte, cai pro fetch com keepalive.
+            let sent = false;
+            if (typeof navigator.sendBeacon === 'function') {
+                try {
+                    sent = navigator.sendBeacon(webhookUrl, new Blob([payload], { type: 'application/json' }));
+                } catch { /* ignora e cai pro fetch */ }
+            }
+            if (!sent) {
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true,
+                    body: payload,
+                }).catch(() => {});
+            }
         })();
 
         // 4. Limpa o formulário e fecha o modal
