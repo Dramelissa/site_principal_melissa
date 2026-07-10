@@ -37,8 +37,19 @@ const ContactPage: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [procedure, setProcedure] = useState('');
   const [message, setMessage] = useState('');
+  const [formEngaged, setFormEngaged] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Dispara 'lead_form' na primeira interação com o formulário
+  const handleFormEngage = () => {
+    if (!formEngaged) {
+      setFormEngaged(true);
+      if (typeof (window as any).fbq === 'function') {
+        (window as any).fbq('trackCustom', 'lead_form');
+      }
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const now = new Date();
@@ -64,11 +75,10 @@ const ContactPage: React.FC = () => {
     const encodedMessage = encodeURIComponent(whatsappMessage);
     const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
-    // Dispara evento de lead no Meta Pixel (browser-side)
+    // Dispara eventos do Meta Pixel em sequência
     if (typeof (window as any).fbq === 'function') {
-      (window as any).fbq('track', 'Lead', {
-        content_name: procedure,
-      });
+      (window as any).fbq('track', 'CompleteRegistration', { content_name: procedure });
+      (window as any).fbq('track', 'Lead', { content_name: procedure });
     }
 
     // Envio para o Webhook / CAPI em background
@@ -178,6 +188,9 @@ const ContactPage: React.FC = () => {
 
     sendTrackingData();
 
+    // Aguarda 400 ms para garantir que o pixel enviou os requests
+    await new Promise(r => setTimeout(r, 400));
+
     // Abre o WhatsApp em nova aba para não matar os requests pendentes
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
@@ -285,6 +298,7 @@ const ContactPage: React.FC = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    onFocus={handleFormEngage}
                     placeholder="Como gostaria de ser chamado(a)?"
                     className="w-full bg-[#FAF7F4] border border-transparent rounded-xl px-5 py-3.5 text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:bg-white transition-all"
                   />
