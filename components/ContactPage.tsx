@@ -75,10 +75,20 @@ const ContactPage: React.FC = () => {
     const encodedMessage = encodeURIComponent(whatsappMessage);
     const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
-    // Dispara eventos do Meta Pixel em sequência
+    // Gera o eventId único — compartilhado entre pixel (browser) e CAPI para deduplicação
+    const sharedEventTime = Math.floor(Date.now() / 1000);
+    const sharedEventId = `lead_${sharedEventTime}_${Math.random().toString(36).slice(2, 9)}`;
+
+    // Dispara eventos do Meta Pixel ANTES de qualquer operação assíncrona
     if (typeof (window as any).fbq === 'function') {
-      (window as any).fbq('track', 'CompleteRegistration', { content_name: procedure });
-      (window as any).fbq('track', 'Lead', { content_name: procedure });
+      (window as any).fbq('track', 'CompleteRegistration',
+        { content_name: procedure },
+        { eventID: `${sharedEventId}_cr` }
+      );
+      (window as any).fbq('track', 'Lead',
+        { content_name: procedure },
+        { eventID: sharedEventId }
+      );
     }
 
     // Envio para o Webhook / CAPI em background
@@ -110,8 +120,9 @@ const ContactPage: React.FC = () => {
         const utmTerm     = getUrlParam('utm_term');
         const utmId       = getUrlParam('utm_id');
 
-        const eventTime = Math.floor(Date.now() / 1000);
-        const eventId   = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
+        // Reutiliza o mesmo eventId do pixel para deduplicação browser↔CAPI
+        const eventTime = sharedEventTime;
+        const eventId   = sharedEventId;
         const externalId = await sha256(`${email}_${normalizedPhone}`);
 
         let clientIp = '';
