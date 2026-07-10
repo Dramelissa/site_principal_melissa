@@ -40,8 +40,8 @@ const ContactPage: React.FC = () => {
 
   // Dispara 'lead_form' uma única vez por sessão
   const handleFormEngage = () => {
-    if (!(window as any)._leadFormTracked && typeof (window as any).fbq === 'function') {
-      (window as any)._leadFormTracked = true;
+    if (!sessionStorage.getItem('leadFormTracked') && typeof (window as any).fbq === 'function') {
+      sessionStorage.setItem('leadFormTracked', '1');
       (window as any).fbq('trackCustom', 'lead_form');
     }
   };
