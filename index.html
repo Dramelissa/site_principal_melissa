@@ -32,20 +32,6 @@
   fbq('init', '1720538598615249');
   fbq('track', 'PageView');
   </script>
-  <!-- Guard: bloqueia re-init do pixel pelo GTM (evita eventos duplicados) -->
-  <script>
-  !function(){
-    var r=window.fbq,seen={'1720538598615249':1};
-    var w=function(){
-      if(arguments[0]==='init'&&seen[arguments[1]])return;
-      if(arguments[0]==='init')seen[arguments[1]]=1;
-      return r.apply(this,arguments);
-    };
-    w.push=r.push;w.loaded=r.loaded;w.version=r.version;w.queue=r.queue;
-    Object.defineProperty(w,'callMethod',{get:function(){return r.callMethod;},configurable:true});
-    window.fbq=window._fbq=w;
-  }();
-  </script>
   <!-- End Meta Pixel Code -->
 
   <meta charset="UTF-8" />
