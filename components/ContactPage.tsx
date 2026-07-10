@@ -72,9 +72,12 @@ const ContactPage: React.FC = () => {
     const encodedMessage = encodeURIComponent(whatsappMessage);
     const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
+    const eventTime = Math.floor(Date.now() / 1000);
+    const eventId = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
+
     // Dispara evento Lead no Meta Pixel ao enviar o formulário
     if (typeof (window as any).fbq === 'function') {
-      (window as any).fbq('track', 'Lead', { content_name: procedure });
+      (window as any).fbq('track', 'Lead', { content_name: procedure }, { eventID: eventId });
     }
 
     // Envio para o Webhook / CAPI em background
@@ -106,9 +109,6 @@ const ContactPage: React.FC = () => {
         const utmTerm     = getUrlParam('utm_term');
         const utmId       = getUrlParam('utm_id');
 
-        // Identificadores de evento
-        const eventTime = Math.floor(Date.now() / 1000);
-        const eventId   = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
         const externalId = await sha256(`${email}_${normalizedPhone}`);
 
         let clientIp = '';
@@ -159,9 +159,6 @@ const ContactPage: React.FC = () => {
     };
 
     sendTrackingData();
-
-    // Aguarda 500ms para o pixel confirmar o envio
-    await new Promise(r => setTimeout(r, 500));
 
     // Abre o WhatsApp em nova aba para não matar os requests pendentes
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
