@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ContactModalProps {
     isOpen: boolean;
@@ -25,21 +25,17 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     const [procedure, setProcedure] = useState('');
     const [message, setMessage] = useState('');
 
-    // Guard para evitar disparo duplo do lead_form no React StrictMode (efeitos rodam 2x em dev)
-    const hasTrackedLeadForm = useRef(false);
-
     // Prevent body scroll when modal is open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
-            // Dispara lead_form apenas uma vez por abertura do modal
-            if (!hasTrackedLeadForm.current && typeof (window as any).fbq === 'function') {
-                hasTrackedLeadForm.current = true;
+            // Flag global: garante disparo único mesmo com StrictMode (remount) ou Modal+Page abertas juntas
+            if (!(window as any)._leadFormTracked && typeof (window as any).fbq === 'function') {
+                (window as any)._leadFormTracked = true;
                 (window as any).fbq('trackCustom', 'lead_form');
             }
         } else {
             document.body.style.overflow = '';
-            hasTrackedLeadForm.current = false; // reseta para a próxima abertura
         }
         return () => { document.body.style.overflow = ''; };
     }, [isOpen]);
