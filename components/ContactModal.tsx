@@ -84,9 +84,12 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         const encodedMessage = encodeURIComponent(whatsappMessage);
         const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
 
+        const eventTime = Math.floor(Date.now() / 1000);
+        const eventId = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
+
         // Dispara evento Lead no Meta Pixel ao enviar o formulário
         if (typeof (window as any).fbq === 'function') {
-            (window as any).fbq('track', 'Lead', { content_name: procedure });
+            (window as any).fbq('track', 'Lead', { content_name: procedure }, { eventID: eventId });
         }
 
         // ── Envio para o Webhook em background (evita bloqueio de pop-up no Safari) ──
@@ -122,10 +125,6 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                 const utmContent = getUrlParam('utm_content');
                 const utmTerm = getUrlParam('utm_term');
                 const utmId = getUrlParam('utm_id');
-
-                // Identificadores de evento
-                const eventTime = Math.floor(Date.now() / 1000);
-                const eventId = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
                 const externalId = await sha256(`${email}_${normalizedPhone}`);
 
                 // IP do cliente via serviço externo (best-effort)
@@ -137,31 +136,56 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                 } catch { /* silencia timeout */ }
 
                 const payload = {
-                    eventName: 'Lead',
-                    eventTime: eventTime,
-                    eventId: eventId,
-                    pageUrl: window.location.href,
-                    hashedEmail: hashedEmail,
-                    hashedPhone: hashedPhone,
-                    hashedFirstName: hashedFn,
-                    hashedLastName: hashedLn,
-                    hashedCountry: await sha256('br'),
-                    externalId: externalId,
-                    clientIp: clientIp,
-                    userAgent: navigator.userAgent,
-                    fbc: fbc,
-                    fbp: fbp,
-                    utmSource: utmSource,
-                    utmMedium: utmMedium,
-                    utmCampaign: utmCampaign,
-                    utmContent: utmContent,
-                    utmTerm: utmTerm,
-                    utmId: utmId,
-                    procedure: procedure,
-                    name: name.trim(),
-                    email: email.trim(),
-                    phone: phone.trim(),
-                    message: message.trim() || ''
+                    data: [
+                        {
+                            event_name: 'Lead',
+                            event_time: eventTime,
+                            event_id: eventId,
+                            action_source: 'website',
+                            event_source_url: window.location.href,
+                            user_data: {
+                                em: hashedEmail,
+                                ph: hashedPhone,
+                                fn: hashedFn,
+                                ln: hashedLn,
+                                country: await sha256('br'),
+                                external_id: externalId,
+                                client_ip_address: clientIp,
+                                client_user_agent: navigator.userAgent,
+                                fbc: fbc,
+                                fbp: fbp,
+                                raw_em: email.trim().toLowerCase(),
+                                raw_ph: normalizedPhone,
+                                raw_fn: firstName.trim().toLowerCase(),
+                                raw_ln: lastName.trim().toLowerCase(),
+                                raw_country: 'br',
+                            },
+                            custom_data: {
+                                procedure: procedure,
+                                utm_source: utmSource,
+                                utm_medium: utmMedium,
+                                utm_campaign: utmCampaign,
+                                utm_content: utmContent,
+                                utm_term: utmTerm,
+                                utm_id: utmId,
+                            },
+                            raw_lead: {
+                                full_name: name.trim(),
+                                first_name: firstName,
+                                last_name: lastName,
+                                email: email.trim(),
+                                phone: phone.trim(),
+                                phone_normalized: normalizedPhone,
+                                procedure: procedure,
+                                message: message.trim() || '',
+                                ip: clientIp,
+                                user_agent: navigator.userAgent,
+                                page_url: window.location.href,
+                                referrer: document.referrer || '',
+                                submitted_at: new Date().toISOString(),
+                            },
+                        },
+                    ],
                 };
 
                 fetch('https://webhook.kvgroupbr.com.br/webhook/site_melissa', {
@@ -177,9 +201,6 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         };
 
         sendTrackingData();
-
-        // Aguarda 500 ms para o pixel confirmar o envio dos requests
-        await new Promise(r => setTimeout(r, 500));
 
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
