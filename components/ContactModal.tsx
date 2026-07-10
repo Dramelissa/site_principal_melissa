@@ -202,7 +202,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         // ─────────────────────────────────────────────────────────────────────
 
         // Chamada síncrona evita bloqueio de popup
-        window.location.href = whatsappUrl;
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
         // Reset form
         setName('');
