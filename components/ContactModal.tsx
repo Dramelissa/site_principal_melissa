@@ -23,7 +23,6 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [procedure, setProcedure] = useState('');
-    const [message, setMessage] = useState('');
 
     // Prevent body scroll when modal is open
     useEffect(() => {
@@ -78,7 +77,6 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
 > E-mail: ${email}
 > Telefone: ${phone}
 > Procedimento: ${procedure}
-> Mensagem: ${message || '—'}
 > Quando: ${dateStr} - ${timeStr}`;
 
         const encodedMessage = encodeURIComponent(whatsappMessage);
@@ -209,7 +207,6 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         setEmail('');
         setPhone('');
         setProcedure('');
-        setMessage('');
         onClose();
     };
 
@@ -331,21 +328,6 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                     <option key={proc} value={proc}>{proc}</option>
                                 ))}
                             </select>
-                        </div>
-
-                        {/* Mensagem */}
-                        <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6B6B6B] mb-1 sm:mb-2">
-                                Mensagem <span className="text-[#6B6B6B]/50">(Opcional)</span>
-                            </label>
-                            <textarea
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Conte-nos mais sobre o que deseja..."
-                                rows={2}
-                                className="w-full bg-white border border-[#E0CC89]/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-sm text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-colors resize-none"
-                            />
-                        </div>
                     </div>
 
                     {/* Submit — fora do scroll, sempre visível */}
