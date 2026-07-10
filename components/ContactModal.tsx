@@ -145,23 +145,12 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
 
             const webhookUrl = 'https://webhook.kvgroupbr.com.br/webhook/site_melissa';
 
-            // sendBeacon é feito exatamente pra isso: sobrevive à navegação/
-            // fechamento da aba, diferente do fetch normal. Usa ele primeiro;
-            // se não tiver suporte, cai pro fetch com keepalive.
-            let sent = false;
-            if (typeof navigator.sendBeacon === 'function') {
-                try {
-                    sent = navigator.sendBeacon(webhookUrl, new Blob([payload], { type: 'application/json' }));
-                } catch { /* ignora e cai pro fetch */ }
-            }
-            if (!sent) {
-                fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    keepalive: true,
-                    body: payload,
-                }).catch(() => {});
-            }
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                keepalive: true,
+                body: payload,
+            }).catch(console.error);
         })();
 
         // 4. Limpa o formulário e fecha o modal
