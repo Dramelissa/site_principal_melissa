@@ -57,152 +57,96 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
         return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         const now = new Date();
-        const dateStr = now.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
-        const timeStr = now.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+        const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-        const whatsappMessage =
-            `📋 Novo contato via site
-> Nome: ${name}
-> E-mail: ${email}
-> Telefone: ${phone}
-> Procedimento: ${procedure}
-> Quando: ${dateStr} - ${timeStr}`;
+        const whatsappMessage = `📋 Novo contato via site\n> Nome: ${name}\n> E-mail: ${email}\n> Telefone: ${phone}\n> Procedimento: ${procedure}\n> Quando: ${dateStr} - ${timeStr}`;
+        const whatsappUrl = `https://wa.me/5592984685391?text=${encodeURIComponent(whatsappMessage)}`;
 
-        const encodedMessage = encodeURIComponent(whatsappMessage);
-        const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
-
-        const eventTime = Math.floor(Date.now() / 1000);
-        const eventId = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
-
-        // Dispara evento Lead no Meta Pixel ao enviar o formulário
+        // 1. Dispara Lead no Pixel IMEDIATAMENTE (síncrono, sem await)
         if (typeof (window as any).fbq === 'function') {
-            (window as any).fbq('track', 'Lead', { content_name: procedure }, { eventID: eventId });
+            (window as any).fbq('track', 'Lead', { content_name: procedure });
         }
 
-        // ── Envio para o Webhook em background (evita bloqueio de pop-up no Safari) ──
-        const sendTrackingData = async () => {
-            try {
-                // Separar primeiro e último nome
-                const nameParts = name.trim().split(' ');
-                const firstName = nameParts[0] || '';
-                const lastName = nameParts.slice(1).join(' ') || '';
-
-                // Normalizar telefone (somente dígitos, adicionar 55 se necessário)
-                const rawPhone = phone.replace(/\D/g, '');
-                const normalizedPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
-
-                // Hash dos dados do usuário (requisito CAPI do Facebook)
-                const [hashedEmail, hashedPhone, hashedFn, hashedLn] = await Promise.all([
-                    sha256(email),
-                    sha256(normalizedPhone),
-                    sha256(firstName),
-                    sha256(lastName),
-                ]);
-
-                // Cookies do Facebook
-                const fbp = getCookie('_fbp');
-                const fbc = getCookie('_fbc') || getUrlParam('fbclid')
-                    ? `fb.1.${Date.now()}.${getUrlParam('fbclid')}`
-                    : '';
-
-                // UTMs da URL atual
-                const utmSource = getUrlParam('utm_source');
-                const utmMedium = getUrlParam('utm_medium');
-                const utmCampaign = getUrlParam('utm_campaign');
-                const utmContent = getUrlParam('utm_content');
-                const utmTerm = getUrlParam('utm_term');
-                const utmId = getUrlParam('utm_id');
-                const externalId = await sha256(`${email}_${normalizedPhone}`);
-
-                // IP do cliente via serviço externo (best-effort)
-                let clientIp = '';
-                try {
-                    const ipRes = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
-                    const ipData = await ipRes.json();
-                    clientIp = ipData.ip || '';
-                } catch { /* silencia timeout */ }
-
-                const payload = {
-                    data: [
-                        {
-                            event_name: 'Lead',
-                            event_time: eventTime,
-                            event_id: eventId,
-                            action_source: 'website',
-                            event_source_url: window.location.href,
-                            user_data: {
-                                em: hashedEmail,
-                                ph: hashedPhone,
-                                fn: hashedFn,
-                                ln: hashedLn,
-                                country: await sha256('br'),
-                                external_id: externalId,
-                                client_ip_address: clientIp,
-                                client_user_agent: navigator.userAgent,
-                                fbc: fbc,
-                                fbp: fbp,
-                                raw_em: email.trim().toLowerCase(),
-                                raw_ph: normalizedPhone,
-                                raw_fn: firstName.trim().toLowerCase(),
-                                raw_ln: lastName.trim().toLowerCase(),
-                                raw_country: 'br',
-                            },
-                            custom_data: {
-                                procedure: procedure,
-                                utm_source: utmSource,
-                                utm_medium: utmMedium,
-                                utm_campaign: utmCampaign,
-                                utm_content: utmContent,
-                                utm_term: utmTerm,
-                                utm_id: utmId,
-                            },
-                            raw_lead: {
-                                full_name: name.trim(),
-                                first_name: firstName,
-                                last_name: lastName,
-                                email: email.trim(),
-                                phone: phone.trim(),
-                                phone_normalized: normalizedPhone,
-                                procedure: procedure,
-                                message: message.trim() || '',
-                                ip: clientIp,
-                                user_agent: navigator.userAgent,
-                                page_url: window.location.href,
-                                referrer: document.referrer || '',
-                                submitted_at: new Date().toISOString(),
-                            },
-                        },
-                    ],
-                };
-
-                fetch('https://webhook.kvgroupbr.com.br/webhook/site_melissa', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    keepalive: true,
-                }).catch(() => { /* silencia erros de rede */ });
-
-            } catch (err) {
-                console.warn('[Webhook] Falha ao enviar dados do lead:', err);
-            }
-        };
-
-        sendTrackingData();
-
+        // 2. Abre WhatsApp IMEDIATAMENTE
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
-        // Reset form
+        // 3. Webhook em background — não bloqueia nada acima
+        const rawPhone = phone.replace(/\D/g, '');
+        const normalizedPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
+        const nameParts = name.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        const eventTime = Math.floor(Date.now() / 1000);
+        const eventId = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
+        const fbp = document.cookie.match(/(^| )_fbp=([^;]+)/)?.[2] || '';
+        const fbc = document.cookie.match(/(^| )_fbc=([^;]+)/)?.[2] || '';
+        const params = new URLSearchParams(window.location.search);
+        const pageUrl   = window.location.href;
+        const userAgent = navigator.userAgent;
+        const referrer  = document.referrer || '';
+        const submittedAt = now.toISOString();
+
+        (async () => {
+            const sha256 = async (str: string) => {
+                if (!str) return '';
+                const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str.trim().toLowerCase()));
+                return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+            };
+            const [hashedEmail, hashedPhone, hashedFn, hashedLn, hashedCountry, externalId] = await Promise.all([
+                sha256(email), sha256(normalizedPhone), sha256(firstName), sha256(lastName),
+                sha256('br'), sha256(`${email}_${normalizedPhone}`),
+            ]);
+            let clientIp = '';
+            try {
+                const r = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+                clientIp = (await r.json()).ip || '';
+            } catch { /* ignora */ }
+
+            fetch('https://webhook.kvgroupbr.com.br/webhook/site_melissa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                keepalive: true,
+                body: JSON.stringify({
+                    data: [{
+                        event_name: 'Lead',
+                        event_time: eventTime,
+                        event_id: eventId,
+                        action_source: 'website',
+                        event_source_url: pageUrl,
+                        user_data: {
+                            em: hashedEmail, ph: hashedPhone, fn: hashedFn, ln: hashedLn,
+                            country: hashedCountry, external_id: externalId,
+                            client_ip_address: clientIp, client_user_agent: userAgent,
+                            fbc, fbp,
+                            raw_em: email.trim().toLowerCase(), raw_ph: normalizedPhone,
+                            raw_fn: firstName.toLowerCase(), raw_ln: lastName.toLowerCase(), raw_country: 'br',
+                        },
+                        custom_data: {
+                            procedure,
+                            utm_source: params.get('utm_source') || '',
+                            utm_medium: params.get('utm_medium') || '',
+                            utm_campaign: params.get('utm_campaign') || '',
+                            utm_content: params.get('utm_content') || '',
+                            utm_term: params.get('utm_term') || '',
+                            utm_id: params.get('utm_id') || '',
+                        },
+                        raw_lead: {
+                            full_name: name.trim(), first_name: firstName, last_name: lastName,
+                            email: email.trim(), phone: phone.trim(), phone_normalized: normalizedPhone,
+                            procedure, ip: clientIp, user_agent: userAgent,
+                            page_url: pageUrl, referrer, submitted_at: submittedAt,
+                        },
+                    }],
+                }),
+            }).catch(() => {});
+        })();
+
+        // 4. Limpa o formulário e fecha o modal
         setName('');
         setEmail('');
         setPhone('');
