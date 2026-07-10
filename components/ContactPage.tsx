@@ -13,24 +13,6 @@ const procedures = [
   'Outro Procedimento',
 ];
 
-// Utilitários para cookies e UTMs
-  const getCookie = (name: string): string => {
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-    return match ? decodeURIComponent(match[2]) : '';
-  };
-
-  const getUrlParam = (param: string): string => {
-    return new URLSearchParams(window.location.search).get(param) || '';
-  };
-
-  // Hash SHA-256 para dados do usuário (requisito CAPI do Facebook)
-  const sha256 = async (str: string): Promise<string> => {
-    if (!str) return '';
-    const normalized = str.trim().toLowerCase();
-    const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized));
-    return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
 const ContactPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -45,152 +27,101 @@ const ContactPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const now = new Date();
-    const dateStr = now.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-    const timeStr = now.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-    const whatsappMessage =
-      `📋 Novo contato via site
-> Nome: ${name}
-> E-mail: ${email}
-> Telefone: ${phone}
-> Procedimento: ${procedure}
-> Quando: ${dateStr} - ${timeStr}`;
+    const whatsappMessage = `📋 Novo contato via site\n> Nome: ${name}\n> E-mail: ${email}\n> Telefone: ${phone}\n> Procedimento: ${procedure}\n> Quando: ${dateStr} - ${timeStr}`;
+    const whatsappUrl = `https://wa.me/5592984685391?text=${encodeURIComponent(whatsappMessage)}`;
 
-    const encodedMessage = encodeURIComponent(whatsappMessage);
-    const whatsappUrl = `https://wa.me/5592984685391?text=${encodedMessage}`;
-
-    const eventTime = Math.floor(Date.now() / 1000);
-    const eventId = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
-
-    // Dispara evento Lead no Meta Pixel ao enviar o formulário
+    // 1. Dispara Lead no Pixel IMEDIATAMENTE (síncrono, sem await)
     if (typeof (window as any).fbq === 'function') {
-      (window as any).fbq('track', 'Lead', { content_name: procedure }, { eventID: eventId });
+      (window as any).fbq('track', 'Lead', { content_name: procedure });
     }
 
-    // Envio para o Webhook / CAPI em background
-    const sendTrackingData = async () => {
-      try {
-        const nameParts = name.trim().split(' ');
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
-
-        const rawPhone = phone.replace(/\D/g, '');
-        const normalizedPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
-
-        const [hashedEmail, hashedPhone, hashedFn, hashedLn] = await Promise.all([
-          sha256(email),
-          sha256(normalizedPhone),
-          sha256(firstName),
-          sha256(lastName),
-        ]);
-
-        const fbp = getCookie('_fbp');
-        const fbc = getCookie('_fbc') || getUrlParam('fbclid')
-          ? `fb.1.${Date.now()}.${getUrlParam('fbclid')}`
-          : '';
-
-        const utmSource   = getUrlParam('utm_source');
-        const utmMedium   = getUrlParam('utm_medium');
-        const utmCampaign = getUrlParam('utm_campaign');
-        const utmContent  = getUrlParam('utm_content');
-        const utmTerm     = getUrlParam('utm_term');
-        const utmId       = getUrlParam('utm_id');
-
-        const externalId = await sha256(`${email}_${normalizedPhone}`);
-
-        let clientIp = '';
-        try {
-          const ipRes  = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
-          const ipData = await ipRes.json();
-          clientIp = ipData.ip || '';
-        } catch { /* silencia timeout */ }
-
-        const payload = {
-          data: [
-            {
-              event_name: 'Lead',
-              event_time: eventTime,
-              event_id: eventId,
-              action_source: 'website',
-              event_source_url: window.location.href,
-              user_data: {
-                em: hashedEmail,
-                ph: hashedPhone,
-                fn: hashedFn,
-                ln: hashedLn,
-                country: await sha256('br'),
-                external_id: externalId,
-                client_ip_address: clientIp,
-                client_user_agent: navigator.userAgent,
-                fbc: fbc,
-                fbp: fbp,
-                raw_em: email.trim().toLowerCase(),
-                raw_ph: normalizedPhone,
-                raw_fn: firstName.trim().toLowerCase(),
-                raw_ln: lastName.trim().toLowerCase(),
-                raw_country: 'br',
-              },
-              custom_data: {
-                procedure,
-                utm_source: utmSource,
-                utm_medium: utmMedium,
-                utm_campaign: utmCampaign,
-                utm_content: utmContent,
-                utm_term: utmTerm,
-                utm_id: utmId,
-              },
-              raw_lead: {
-                full_name: name.trim(),
-                first_name: firstName,
-                last_name: lastName,
-                email: email.trim(),
-                phone: phone.trim(),
-                phone_normalized: normalizedPhone,
-                procedure,
-                message: message.trim() || '',
-                ip: clientIp,
-                user_agent: navigator.userAgent,
-                page_url: window.location.href,
-                referrer: document.referrer || '',
-                submitted_at: new Date().toISOString(),
-              },
-            },
-          ],
-        };
-
-        fetch('https://webhook.kvgroupbr.com.br/webhook/site_melissa', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          keepalive: true,
-        }).catch(() => { /* silencia erros de rede */ });
-
-      } catch (err) {
-        console.warn('[Webhook] Falha ao enviar dados do lead (ContactPage):', err);
-      }
-    };
-
-    sendTrackingData();
-
-    // Abre o WhatsApp em nova aba para não matar os requests pendentes
+    // 2. Abre WhatsApp IMEDIATAMENTE
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
 
+    // 3. Webhook em background — não bloqueia nada acima
+    const rawPhone = phone.replace(/\D/g, '');
+    const normalizedPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
+    const nameParts = name.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    const eventTime = Math.floor(Date.now() / 1000);
+    const eventId = `lead_${eventTime}_${Math.random().toString(36).slice(2, 9)}`;
+    const fbp = document.cookie.match(/(^| )_fbp=([^;]+)/)?.[2] || '';
+    const fbc = document.cookie.match(/(^| )_fbc=([^;]+)/)?.[2] || '';
+    const params = new URLSearchParams(window.location.search);
+    const utmSource   = params.get('utm_source') || '';
+    const utmMedium   = params.get('utm_medium') || '';
+    const utmCampaign = params.get('utm_campaign') || '';
+    const utmContent  = params.get('utm_content') || '';
+    const utmTerm     = params.get('utm_term') || '';
+    const utmId       = params.get('utm_id') || '';
+    const pageUrl     = window.location.href;
+    const userAgent   = navigator.userAgent;
+    const referrer    = document.referrer || '';
+    const submittedAt = now.toISOString();
+
+    (async () => {
+      const sha256 = async (str: string) => {
+        if (!str) return '';
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str.trim().toLowerCase()));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      };
+      const [hashedEmail, hashedPhone, hashedFn, hashedLn, hashedCountry, externalId] = await Promise.all([
+        sha256(email), sha256(normalizedPhone), sha256(firstName), sha256(lastName),
+        sha256('br'), sha256(`${email}_${normalizedPhone}`),
+      ]);
+      let clientIp = '';
+      try {
+        const r = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+        clientIp = (await r.json()).ip || '';
+      } catch { /* ignora */ }
+
+      fetch('https://webhook.kvgroupbr.com.br/webhook/site_melissa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({
+          data: [{
+            event_name: 'Lead',
+            event_time: eventTime,
+            event_id: eventId,
+            action_source: 'website',
+            event_source_url: pageUrl,
+            user_data: {
+              em: hashedEmail, ph: hashedPhone, fn: hashedFn, ln: hashedLn,
+              country: hashedCountry, external_id: externalId,
+              client_ip_address: clientIp, client_user_agent: userAgent,
+              fbc, fbp,
+              raw_em: email.trim().toLowerCase(), raw_ph: normalizedPhone,
+              raw_fn: firstName.toLowerCase(), raw_ln: lastName.toLowerCase(), raw_country: 'br',
+            },
+            custom_data: {
+              procedure, utm_source: utmSource, utm_medium: utmMedium,
+              utm_campaign: utmCampaign, utm_content: utmContent, utm_term: utmTerm, utm_id: utmId,
+            },
+            raw_lead: {
+              full_name: name.trim(), first_name: firstName, last_name: lastName,
+              email: email.trim(), phone: phone.trim(), phone_normalized: normalizedPhone,
+              procedure, ip: clientIp, user_agent: userAgent,
+              page_url: pageUrl, referrer, submitted_at: submittedAt,
+            },
+          }],
+        }),
+      }).catch(() => {});
+    })();
+
+    // 4. Limpa o formulário
     setName('');
     setEmail('');
     setPhone('');
     setProcedure('');
-    setMessage('');
   };
 
   return (
@@ -214,7 +145,6 @@ const ContactPage: React.FC = () => {
           {/* Lado Esquerdo: Info & Mapa */}
           <FadeIn direction="left" delay={150}>
             <div className="space-y-10">
-              {/* Contatos e Redes */}
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-8">
                 <div>
                   <h3 className="text-lg font-semibold text-[#2C2C2C] mb-4 flex items-center gap-2">
@@ -257,7 +187,6 @@ const ContactPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Mapa do Google embedding */}
               <div className="w-full h-[300px] rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-white">
                 <iframe
                   src="https://maps.google.com/maps?q=Cl%C3%ADnica+Dra+Melissa+Tamayo+-+Blefaroplastia&t=&z=17&ie=UTF8&iwloc=&output=embed"
@@ -347,20 +276,6 @@ const ContactPage: React.FC = () => {
                       <option key={proc} value={proc}>{proc}</option>
                     ))}
                   </select>
-                </div>
-
-                {/* Mensagem */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-widest text-[#6B6B6B] mb-2">
-                    Mensagem <span className="text-[#6B6B6B]/40 font-normal normal-case tracking-normal">(Opcional)</span>
-                  </label>
-                  <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Conte-nos o que você busca melhorar..."
-                    rows={4}
-                    className="w-full bg-[#FAF7F4] border border-transparent rounded-xl px-5 py-3.5 text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:bg-white transition-all resize-none"
-                  />
                 </div>
 
                 {/* Submit */}
