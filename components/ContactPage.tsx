@@ -42,7 +42,7 @@ const ContactPage: React.FC = () => {
   const handleFormEngage = () => {
     if (!(window as any)._leadFormTracked && typeof (window as any).fbq === 'function') {
       (window as any)._leadFormTracked = true;
-      (window as any).fbq('trackCustom', 'lead_form');
+      (window as any).fbq('trackSingleCustom', '1720538598615249', 'lead_form');
     }
   };
 
@@ -78,11 +78,11 @@ const ContactPage: React.FC = () => {
 
     // Dispara eventos do Meta Pixel ANTES de qualquer operação assíncrona
     if (typeof (window as any).fbq === 'function') {
-      (window as any).fbq('track', 'CompleteRegistration',
+      (window as any).fbq('trackSingle', '1720538598615249', 'CompleteRegistration',
         { content_name: procedure },
         { eventID: `${sharedEventId}_cr` }
       );
-      (window as any).fbq('track', 'Lead',
+      (window as any).fbq('trackSingle', '1720538598615249', 'Lead',
         { content_name: procedure },
         { eventID: sharedEventId }
       );
