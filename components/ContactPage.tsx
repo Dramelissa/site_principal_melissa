@@ -36,7 +36,6 @@ const ContactPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [procedure, setProcedure] = useState('');
-  const [message, setMessage] = useState('');
 
   // Dispara 'lead_form' uma única vez por sessão
   const handleFormEngage = () => {
@@ -66,7 +65,6 @@ const ContactPage: React.FC = () => {
 > E-mail: ${email}
 > Telefone: ${phone}
 > Procedimento: ${procedure}
-> Mensagem: ${message || '—'}
 > Quando: ${dateStr} - ${timeStr}`;
 
     const encodedMessage = encodeURIComponent(whatsappMessage);
