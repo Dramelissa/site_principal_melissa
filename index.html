@@ -11,13 +11,13 @@
 
     gtag('config', 'AW-16606072383');
   </script>
-  <!-- Google Tag Manager -->
+  <!-- Google Tag Manager (TEMPORARIAMENTE DESATIVADO)
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
   j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-5F32JQXP');</script>
-  <!-- End Google Tag Manager -->
+  End Google Tag Manager -->
 
   <!-- Meta Pixel Code -->
   <script>
@@ -31,6 +31,20 @@
   'https://connect.facebook.net/en_US/fbevents.js');
   fbq('init', '1720538598615249');
   fbq('track', 'PageView');
+  </script>
+  <!-- Guard: bloqueia re-init do pixel pelo GTM (evita eventos duplicados) -->
+  <script>
+  !function(){
+    var r=window.fbq,seen={'1720538598615249':1};
+    var w=function(){
+      if(arguments[0]==='init'&&seen[arguments[1]])return;
+      if(arguments[0]==='init')seen[arguments[1]]=1;
+      return r.apply(this,arguments);
+    };
+    w.push=r.push;w.loaded=r.loaded;w.version=r.version;w.queue=r.queue;
+    Object.defineProperty(w,'callMethod',{get:function(){return r.callMethod;},configurable:true});
+    window.fbq=window._fbq=w;
+  }();
   </script>
   <!-- End Meta Pixel Code -->
 
@@ -70,10 +84,10 @@
 </head>
 
 <body class="bg-[#F5F0EA] text-[#2C2C2C]">
-  <!-- Google Tag Manager (noscript) -->
+  <!-- Google Tag Manager noscript (TEMPORARIAMENTE DESATIVADO)
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5F32JQXP"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
+  End Google Tag Manager (noscript) -->
 
   <!-- Meta Pixel noscript fallback -->
   <noscript><img height="1" width="1" style="display:none"
