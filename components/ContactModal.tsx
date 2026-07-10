@@ -29,9 +29,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
-            // Flag global: garante disparo único mesmo com StrictMode (remount) ou Modal+Page abertas juntas
-            if (!(window as any)._leadFormTracked && typeof (window as any).fbq === 'function') {
-                (window as any)._leadFormTracked = true;
+            // Flag global via sessionStorage: garante disparo único mesmo com StrictMode (remount) ou Modal+Page abertas juntas
+            if (!sessionStorage.getItem('leadFormTracked') && typeof (window as any).fbq === 'function') {
+                sessionStorage.setItem('leadFormTracked', '1');
                 (window as any).fbq('trackCustom', 'lead_form');
             }
         } else {
