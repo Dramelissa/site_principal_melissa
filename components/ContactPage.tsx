@@ -37,15 +37,12 @@ const ContactPage: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [procedure, setProcedure] = useState('');
   const [message, setMessage] = useState('');
-  const [formEngaged, setFormEngaged] = useState(false);
 
-  // Dispara 'lead_form' na primeira interação com o formulário
+  // Dispara 'lead_form' uma única vez por sessão (flag global resiste a remounts do StrictMode)
   const handleFormEngage = () => {
-    if (!formEngaged) {
-      setFormEngaged(true);
-      if (typeof (window as any).fbq === 'function') {
-        (window as any).fbq('trackCustom', 'lead_form');
-      }
+    if (!(window as any)._leadFormTracked && typeof (window as any).fbq === 'function') {
+      (window as any)._leadFormTracked = true;
+      (window as any).fbq('trackCustom', 'lead_form');
     }
   };
 
