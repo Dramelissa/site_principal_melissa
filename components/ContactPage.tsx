@@ -123,11 +123,13 @@ const ContactPage: React.FC = () => {
       }).catch(console.error);
     })();
 
-    // 4. Limpa o formulário
+    // 4. Marca envio e vai para a página de obrigado
+    sessionStorage.setItem('leadSubmitted', '1');
     setName('');
     setEmail('');
     setPhone('');
     setProcedure('');
+    window.location.href = '/redirect';
   };
 
   return (
