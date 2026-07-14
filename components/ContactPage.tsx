@@ -241,6 +241,7 @@ const ContactPage: React.FC = () => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    onFocus={handleFormEngage}
                     placeholder="seu@melhoremail.com"
                     className="w-full bg-[#FAF7F4] border border-transparent rounded-xl px-5 py-3.5 text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:bg-white transition-all"
                   />
@@ -256,6 +257,7 @@ const ContactPage: React.FC = () => {
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    onFocus={handleFormEngage}
                     placeholder="(DD) 99999-9999"
                     className="w-full bg-[#FAF7F4] border border-transparent rounded-xl px-5 py-3.5 text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:bg-white transition-all"
                   />
@@ -270,6 +272,7 @@ const ContactPage: React.FC = () => {
                     required
                     value={procedure}
                     onChange={(e) => setProcedure(e.target.value)}
+                    onFocus={handleFormEngage}
                     className="w-full bg-[#FAF7F4] border border-transparent rounded-xl px-5 py-3.5 text-[#2C2C2C] focus:outline-none focus:border-[#C9A84C] focus:bg-white transition-all appearance-none"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
