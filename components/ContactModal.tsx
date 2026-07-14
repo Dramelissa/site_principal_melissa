@@ -157,12 +157,14 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
             }).catch(console.error);
         })();
 
-        // 4. Limpa o formulário e fecha o modal
+        // 4. Marca envio e vai para a página de obrigado
+        sessionStorage.setItem('leadSubmitted', '1');
         setName('');
         setEmail('');
         setPhone('');
         setProcedure('');
         onClose();
+        window.location.href = '/redirect';
     };
 
     if (!isOpen) return null;
