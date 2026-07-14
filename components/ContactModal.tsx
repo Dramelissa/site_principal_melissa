@@ -28,16 +28,20 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
-            // Flag global via sessionStorage: garante disparo único mesmo com StrictMode (remount) ou Modal+Page abertas juntas
-            if (!sessionStorage.getItem('leadFormTracked') && typeof (window as any).fbq === 'function') {
-                sessionStorage.setItem('leadFormTracked', '1');
-                (window as any).fbq('trackCustom', 'lead_form');
-            }
+            handleFormEngage();
         } else {
             document.body.style.overflow = '';
         }
         return () => { document.body.style.overflow = ''; };
     }, [isOpen]);
+
+    // Dispara lead_form uma única vez por sessão
+    const handleFormEngage = () => {
+        if (!sessionStorage.getItem('leadFormTracked') && typeof (window as any).fbq === 'function') {
+            sessionStorage.setItem('leadFormTracked', '1');
+            (window as any).fbq('trackCustom', 'lead_form');
+        }
+    };
 
     // Utilitários para cookies e UTMs
     const getCookie = (name: string): string => {
@@ -223,6 +227,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                 required
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
+                                onFocus={handleFormEngage}
                                 placeholder="Seu nome completo"
                                 className="w-full bg-white border border-[#E0CC89]/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-sm text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-colors"
                             />
@@ -238,6 +243,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                onFocus={handleFormEngage}
                                 placeholder="seu@email.com"
                                 className="w-full bg-white border border-[#E0CC89]/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-sm text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-colors"
                             />
@@ -253,6 +259,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                 required
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
+                                onFocus={handleFormEngage}
                                 placeholder="(DD) 99999-9999"
                                 className="w-full bg-white border border-[#E0CC89]/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-sm text-[#2C2C2C] placeholder:text-[#6B6B6B]/40 focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-colors"
                             />
@@ -267,6 +274,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                                 required
                                 value={procedure}
                                 onChange={(e) => setProcedure(e.target.value)}
+                                onFocus={handleFormEngage}
                                 className="w-full bg-white border border-[#E0CC89]/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-sm text-[#2C2C2C] focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 transition-colors appearance-none"
                                 style={{
                                     backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
