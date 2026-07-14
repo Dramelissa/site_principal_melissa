@@ -11,10 +11,19 @@ import { getUtmParamsFromUrl, storeUtmParams } from './lib/utm';
 
 const ServicesPage = React.lazy(() => import('./components/ServicesPage'));
 const ContactPage = React.lazy(() => import('./components/ContactPage'));
-
 const ContactModal = React.lazy(() => import('./components/ContactModal'));
+const RedirectPage = React.lazy(() => import('./components/RedirectPage'));
 
 const App: React.FC = () => {
+  // Rota /redirect: exibe a thank-you page sem header/footer
+  if (window.location.pathname === '/redirect') {
+    return (
+      <React.Suspense fallback={null}>
+        <RedirectPage />
+      </React.Suspense>
+    );
+  }
+
   const [currentPage, setCurrentPage] = useState<'home' | 'procedimentos' | 'contato'>('home');
   const [scrollTarget, setScrollTarget] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
